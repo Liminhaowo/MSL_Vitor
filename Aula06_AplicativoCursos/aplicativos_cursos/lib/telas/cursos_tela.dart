@@ -1,122 +1,130 @@
 import 'package:flutter/material.dart';
 
-class CursosTela extends StatefulWidget {
-  const CursosTela({super.key});
+class CursoPage extends StatefulWidget {
+  final List<String> cursos;
+  final List<String> descricao;
+  final List<bool> favoritos;
+  final List<double> progresso;
+  final Function(int) onFavoritoChanged;
+  final Function(int, double)? onProgressoChanged;
+
+  const CursoPage({
+    super.key,
+    required this.cursos,
+    required this.descricao,
+    required this.favoritos,
+    required this.progresso,
+    required this.onFavoritoChanged,
+    this.onProgressoChanged,
+  });
 
   @override
-  State<CursosTela> createState() => _CursosTelaState();
+  State<CursoPage> createState() => _CursoPageState();
 }
 
-class _CursosTelaState extends State<CursosTela> {
-  final cursos = [
-    'Flutter Basico',
-    'Dart Essencial',
-    'Interface Mobile',
-    'Python',
-    'DJ',
-    'Culinaria',
-  ];
-
-  final descricao = [
-    'Curso que se vai fazer flutter \n80H de duração',
-    'Curso que se vai fazer dart \n70H de duração',
-    'Curso que se vai fazer interface \n30H de duração',
-    'Curso que se vai fazer python \n50H de duração',
-    'Curso que se vai dijeiar \n20H de duração',
-    'Curso que se vai cozinhar \n140H de duração',
-  ];
-
-  final icones = [
-    Icon(Icons.flutter_dash_outlined),
-    Icon(Icons.bluetooth),
-    Icon(Icons.mobile_friendly),
-    Icon(Icons.code),
-    Icon(Icons.music_note),
-    Icon(Icons.food_bank),
-  ];
-
-  final corDosCirculos = [
-    Colors.blueAccent,
-    Colors.lightBlueAccent,
-    Colors.lightGreenAccent,
-    Colors.orange,
-    Colors.grey,
-    Colors.redAccent,
-  ];
-
+class _CursoPageState extends State<CursoPage> {
   String resultado = '';
 
   @override
   Widget build(BuildContext context) {
-    // Filtra os cursos usando where()
-    final cursosFiltrados = cursos.where((curso) {
+    final cursosFiltrados = widget.cursos.where((curso) {
       return curso.toLowerCase().contains(resultado.toLowerCase());
     }).toList();
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 50,
-            vertical: 20,
-          ),
-          child: TextField(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      child: Column(
+        children: [
+          TextField(
             decoration: InputDecoration(
               hintText: 'Buscar curso...',
-              prefixIcon: Icon(Icons.search),
+              prefixIcon: const Icon(Icons.search),
               border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(24),
-              borderSide: const BorderSide(color: Colors.grey, width: 2.0),
+                borderRadius: BorderRadius.circular(24),
+                borderSide: const BorderSide(color: Colors.grey, width: 2.0),
+              ),
             ),
-            
-            // 2. Trava a mesma borda para quando NÃO estiver clicado
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(24),
-              borderSide: const BorderSide(color: Colors.grey, width: 2.0),
-            ),
-            
-            // 3. Trava a mesma MERDA de borda para quando ESTIVER clicado (ignora o azul do Flutter)
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(24),
-              borderSide: const BorderSide(color: Colors.grey, width: 2.0),
-            ),
-            ),
-            onChanged: (valor) {
+            onChanged: (value) {
               setState(() {
-                resultado = valor;
+                resultado = value;
               });
             },
           ),
-        ),
+          const SizedBox(height: 12),
+          Expanded(
+            child: ListView.builder(
+              itemCount: cursosFiltrados.length,
+              itemBuilder: (context, indice) {
+                final indiceOriginal = widget.cursos.indexOf(
+                  cursosFiltrados[indice],
+                );
+                
+                final int aulasConcluidas = (widget.progresso[indiceOriginal] * 12).round();
+                final String textoAulas = '$aulasConcluidas/12 aulas';
+                
+                final String descricaoOriginal = widget.descricao[indiceOriginal];
+                final String descricaoModificada = descricaoOriginal.replaceFirst(RegExp(r'\d+ aulas'), textoAulas);
 
-        Expanded(
-          child: ListView.builder(
-            itemCount: cursosFiltrados.length,
-            itemBuilder: (context, indice) {
-              // Descobre o índice original do curso
-              final indiceOriginal = cursos.indexOf(
-                cursosFiltrados[indice],
-              );
-
-              return Card(
-                child: ListTile(
-                  title: Text(cursosFiltrados[indice]),
-                  leading: CircleAvatar(
-                    backgroundColor: corDosCirculos[indiceOriginal],
-                    child: icones[indiceOriginal],
+                return Card(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Stack(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 6.0),
+                          child: ListTile(
+                            title: Row(
+                              children: [
+                                const Icon(Icons.flutter_dash_outlined),
+                                const SizedBox(width: 4),
+                                Text(cursosFiltrados[indice]),
+                              ],
+                            ),
+                            leading: const CircleAvatar(
+                              child: Icon(Icons.play_arrow),
+                            ),
+                            subtitle: Text(descricaoModificada),
+                            trailing: const Icon(Icons.chevron_right),
+                          ),
+                        ),
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: IconButton(
+                            icon: Icon(
+                              widget.favoritos[indiceOriginal]
+                                  ? Icons.favorite
+                                  : Icons.favorite_outline,
+                              size: 24,
+                              color: widget.favoritos[indiceOriginal]
+                                  ? const Color.fromARGB(255, 202, 13, 0)
+                                  : Colors.black,
+                            ),
+                            onPressed: () {
+                              widget.onFavoritoChanged(indiceOriginal);
+                            },
+                          ),
+                        ),
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          child: LinearProgressIndicator(
+                            value: widget.progresso[indiceOriginal],
+                            backgroundColor: const Color.fromARGB(255, 138, 228, 255),
+                            color: const Color.fromARGB(255, 0, 33, 221),
+                            minHeight: 6,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  subtitle: Text(
-                    descricao[indiceOriginal],
-                  ),
-                  trailing: const Icon(
-                    Icons.chevron_right,
-                  ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

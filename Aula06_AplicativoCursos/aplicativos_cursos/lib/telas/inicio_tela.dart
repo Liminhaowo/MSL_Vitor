@@ -1,34 +1,51 @@
+import 'package:aplicativos_cursos/widgets/secoesCard.dart';
 import 'package:flutter/material.dart';
 
-class InicioTela extends StatelessWidget {
-  const InicioTela({super.key});
+class InicioPage extends StatelessWidget {
+  const InicioPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       children: [
         Text(
-          'Olá Fiote',
+          'Olá, estudante!',
           style: Theme.of(
             context,
           ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
-
-        const SizedBox(height: 8),
-
-        const Text('Continue aprendendo e evoluindo'),
-
-        const SizedBox(height: 24),
-
+        SizedBox(height: 8),
+        Text('Continue aprendendo e evoluindo'),
+        SizedBox(height: 24),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SecoesCard(
+              quantidade: '4',
+              subtitulo: 'Cursos iniciados'
+            ),
+            SizedBox(width: 12),
+            SecoesCard(
+              quantidade: '1',
+              subtitulo: 'Cursos concluídos'
+            ),
+            SizedBox(width: 12),
+            SecoesCard(
+              quantidade: '18',
+              subtitulo: 'Aulas concluídas'
+            ),
+          ],
+        ),
+        SizedBox(height: 24),
         Container(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            gradient: const LinearGradient(
-              colors: [Colors.deepPurple, Colors.purpleAccent],
+            gradient: LinearGradient(
+              colors: [const Color.fromARGB(255, 0, 27, 177), const Color.fromARGB(255, 0, 150, 209)],
             ),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
                 color: Colors.black26,
                 blurRadius: 10,
@@ -36,12 +53,12 @@ class InicioTela extends StatelessWidget {
               ),
             ],
           ),
-          child: const Column(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.flutter_dash_sharp, color: Colors.white, size: 46),
+              Icon(Icons.flutter_dash, color: Colors.white, size: 46),
               Text(
-                'Flutter Basico',
+                'Flutter Básico',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 24,
@@ -49,7 +66,7 @@ class InicioTela extends StatelessWidget {
                 ),
               ),
               Text(
-                '8 a 12 aulas concluidas',
+                '8 de 12 aulas concluídas',
                 style: TextStyle(color: Colors.white),
               ),
             ],

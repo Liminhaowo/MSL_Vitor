@@ -1,21 +1,19 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:aplicativos_cursos/telas/editar_perfil_tela.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class PerfilPage extends StatefulWidget {
-  const PerfilPage({super.key});
+class EditarPerfilTela extends StatefulWidget {
+  const EditarPerfilTela({super.key});
 
   @override
-  State<PerfilPage> createState() => _PerfilPageState();
+  State<EditarPerfilTela> createState() => _EditarPerfilTelaState();
 }
 
-class _PerfilPageState extends State<PerfilPage> {
-  final TextEditingController nomeController = TextEditingController(text: 'Liminha');
-  final TextEditingController emailController = TextEditingController(text: 'LiminhaSenai@gmail.com');
+class _EditarPerfilTelaState extends State<EditarPerfilTela> {
+  final TextEditingController nomeController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
 
   final ImagePicker picker = ImagePicker();
   Uint8List? fotoBytesWeb;
@@ -33,8 +31,6 @@ class _PerfilPageState extends State<PerfilPage> {
     setState(() {
       fotoBytesWeb = bytes;
     });
-
-    await salvarFotoBase64(bytes);
   }
 
   Future<void> tirarFoto() async {
@@ -50,8 +46,6 @@ class _PerfilPageState extends State<PerfilPage> {
     setState(() {
       fotoBytesWeb = bytes;
     });
-
-    await salvarFotoBase64(bytes);
   }
 
   void mostrarOpcoesFoto() {
@@ -84,31 +78,54 @@ class _PerfilPageState extends State<PerfilPage> {
     );
   }
 
-  Future<void> salvarFotoBase64(Uint8List bytes) async {
-    final prefs = await SharedPreferences.getInstance();
-    final String base64String = base64Encode(bytes);
-    await prefs.setString('foto_base64', base64String);
-  }
-
   Future<void> carregarPerfil() async {
     final prefs = await SharedPreferences.getInstance();
-
     final nome = prefs.getString('nome');
     final email = prefs.getString('email');
     final String? fotoBase64 = prefs.getString('foto_base64');
 
-    if (nome != null && nome.isNotEmpty) {
-      nomeController.text = nome;
-    }
-    if (email != null && email.isNotEmpty) {
-      emailController.text = email;
-    }
+    if (nome != null) nomeController.text = nome;
+    if (email != null) emailController.text = email;
 
     if (fotoBase64 != null && fotoBase64.isNotEmpty) {
       setState(() {
         fotoBytesWeb = base64Decode(fotoBase64);
       });
     }
+  }
+
+  Future<void> salvarPerfil() async {
+    final nome = nomeController.text.trim();
+    final email = emailController.text.trim();
+
+    if (nome.isEmpty || email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Preencha o nome e o e-mail')),
+      );
+      return;
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+
+    await prefs.setString('nome', nome);
+    await prefs.setString('email', email);
+
+    if (fotoBytesWeb != null) {
+      final String base64String = base64Encode(fotoBytesWeb!);
+      await prefs.setString('foto_base64', base64String);
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Perfil salvo com sucesso'),
+      ),
+    );
+
+    Navigator.pop(context);
   }
 
   @override
@@ -132,6 +149,10 @@ class _PerfilPageState extends State<PerfilPage> {
     }
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Editar Perfil'),
+        centerTitle: true,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
@@ -161,33 +182,8 @@ class _PerfilPageState extends State<PerfilPage> {
                 ],
               ),
               const SizedBox(height: 32),
-              const Text(
-                'Curso atual: Flutter',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Quantidade de cursos: 3',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Quantidade de aulas concluídas: 16',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
               TextField(
                 controller: nomeController,
-                readOnly: true,
                 decoration: InputDecoration(
                   labelText: 'Nome',
                   floatingLabelBehavior: FloatingLabelBehavior.always,
@@ -202,7 +198,6 @@ class _PerfilPageState extends State<PerfilPage> {
               TextField(
                 controller: emailController,
                 keyboardType: TextInputType.emailAddress,
-                readOnly: true,
                 decoration: InputDecoration(
                   labelText: 'E-mail',
                   floatingLabelBehavior: FloatingLabelBehavior.always,
@@ -218,18 +213,10 @@ class _PerfilPageState extends State<PerfilPage> {
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton.icon(
-                  onPressed: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const EditarPerfilTela(),
-                      ),
-                    );
-                    carregarPerfil();
-                  },
-                  icon: const Icon(Icons.edit, color: Colors.black),
+                  onPressed: salvarPerfil,
+                  icon: const Icon(Icons.save, color: Colors.black),
                   label: const Text(
-                    'Editar perfil',
+                    'Salvar alterações',
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 16,
